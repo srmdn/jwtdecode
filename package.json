@@ -1,0 +1,14 @@
+{
+  "name": "jwtdecode",
+  "version": "0.1.0",
+  "scripts": {
+    "dev": "bun run --hot src/index.tsx",
+    "start": "bun run src/index.tsx"
+  },
+  "dependencies": {
+    "hono": "^4.7.0"
+  },
+  "devDependencies": {
+    "bun-types": "latest"
+  }
+}
