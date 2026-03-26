@@ -3,8 +3,9 @@
   "version": "0.1.0",
   "scripts": {
     "dev": "bun run --hot src/index.tsx",
-    "build": "vite build",
-    "start": "bun run src/index.tsx"
+    "build": "bun build src/index.tsx --outfile dist/server.js --target bun",
+    "start": "bun run src/index.tsx",
+    "test": "bun test"
   },
   "dependencies": {
     "hono": "^4.7.0"
