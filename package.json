@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "scripts": {
     "dev": "bun run --hot src/index.tsx",
+    "build": "vite build",
     "start": "bun run src/index.tsx"
   },
   "dependencies": {
