@@ -1,19 +1,24 @@
 import { describe, it, expect } from "bun:test";
 import { decodeJWT } from "./decode";
 
-// A real HS256 JWT with known payload (non-expired for static claims, exp in far future)
-// Header: {"alg":"HS256","typ":"JWT"}
-// Payload: {"sub":"1234567890","name":"John Doe","iat":1516239022,"exp":9999999999}
-const VALID_JWT =
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyLCJleHAiOjk5OTk5OTk5OTl9.Lx6mRFNPZiOzPXXfZ4yFNBbvNk2Gf3r1KbBv2cE8z_g";
+function encodePart(value: unknown): string {
+  return btoa(JSON.stringify(value)).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+}
+
+function tokenFromParts(header: unknown, payload: unknown, signature = "test-signature"): string {
+  return `${encodePart(header)}.${encodePart(payload)}${signature ? `.${signature}` : ""}`;
+}
+
+const VALID_JWT = tokenFromParts(
+  { alg: "HS256", typ: "JWT" },
+  { sub: "1234567890", name: "John Doe", iat: 1516239022, exp: 9999999999 },
+);
 
 // Expired JWT (exp: 1)
-const EXPIRED_JWT =
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ1c2VyMSIsImV4cCI6MX0.placeholder";
+const EXPIRED_JWT = tokenFromParts({ alg: "HS256", typ: "JWT" }, { sub: "user1", exp: 1 });
 
 // JWT without signature (2 parts only)
-const NO_SIG_JWT =
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ1c2VyMSIsIm5hbWUiOiJUZXN0In0";
+const NO_SIG_JWT = tokenFromParts({ alg: "HS256", typ: "JWT" }, { sub: "user1", name: "Test" }, "");
 
 describe("decodeJWT", () => {
   it("rejects non-JWT input", () => {
@@ -63,8 +68,7 @@ describe("decodeJWT", () => {
   });
 
   it("handles token with no exp claim", () => {
-    // Header: {"alg":"none"} Payload: {"sub":"user1"}
-    const noExp = "eyJhbGciOiJub25lIn0.eyJzdWIiOiJ1c2VyMSJ9.";
+    const noExp = tokenFromParts({ alg: "none" }, { sub: "user1" });
     const result = decodeJWT(noExp);
     expect(result.valid).toBe(true);
     if (!result.valid) return;

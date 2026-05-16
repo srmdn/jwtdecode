@@ -3,8 +3,24 @@ import { decodeJWT, type ClaimInfo, type DecodedJWT } from "./decode";
 
 const app = new Hono();
 
-const EXAMPLE_TOKEN =
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ1c2VyXzEyMzQ1IiwibmFtZSI6IkphbmUgRG9lIiwiZW1haWwiOiJqYW5lQGV4YW1wbGUuY29tIiwicm9sZSI6ImFkbWluIiwiaWF0IjoxNzE2MjM5MDIyLCJleHAiOjk5OTk5OTk5OTl9.placeholder";
+function encodeTokenPart(value: unknown): string {
+  return btoa(JSON.stringify(value)).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+}
+
+function exampleToken(): string {
+  const header = encodeTokenPart({ alg: "HS256", typ: "JWT" });
+  const payload = encodeTokenPart({
+    sub: "user_1234",
+    name: "Jane Doe",
+    email: "jane@example.com",
+    role: "admin",
+    iat: 1716239022,
+    exp: 9999999999,
+  });
+  return `${header}.${payload}.example-signature`;
+}
+
+const EXAMPLE_TOKEN = exampleToken();
 
 function Layout({ children, title }: { children: any; title?: string }) {
   return (
@@ -12,7 +28,7 @@ function Layout({ children, title }: { children: any; title?: string }) {
       <head>
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>{title ? `${title} — jwtdecode` : "jwtdecode"}</title>
+        <title>{title ? `${title} - jwtdecode` : "jwtdecode"}</title>
         <script src="https://cdn.tailwindcss.com"></script>
       </head>
       <body class="bg-white text-slate-900 min-h-screen antialiased">
@@ -111,10 +127,10 @@ function Result({ jwt }: { jwt: DecodedJWT }) {
           {jwt.hasSignature ? (
             <span>
               <span class="text-emerald-600 font-semibold">Signature present.</span>{" "}
-              This tool only decodes — it cannot verify the signature without the secret key.
+              This tool only decodes; it cannot verify the signature without the secret key.
             </span>
           ) : (
-            <span class="text-slate-400">No signature — this token is unsigned (algorithm: none).</span>
+            <span class="text-slate-400">No signature; this token is unsigned (algorithm: none).</span>
           )}
         </div>
       </Section>
@@ -131,7 +147,7 @@ app.get("/", (c) => {
       <div class="max-w-2xl mx-auto px-4 py-12">
         <div class="mb-8">
           <h1 class="text-2xl font-bold tracking-tight">jwtdecode</h1>
-          <p class="text-slate-500 mt-1 text-sm">Inspect any JWT token — header, payload, expiry.</p>
+          <p class="text-slate-500 mt-1 text-sm">Inspect any JWT token: header, payload, expiry.</p>
         </div>
 
         <form method="GET" action="/" class="mb-6 space-y-3">
@@ -174,7 +190,7 @@ app.get("/", (c) => {
 
         <footer class="mt-16 pt-6 border-t border-slate-100">
           <p class="text-xs text-slate-400">
-            Decodes only — tokens never leave your browser.{" "}
+            Decodes only; tokens never leave your browser.{" "}
             Made by{" "}
             <a href="https://github.com/srmdn" class="underline hover:text-slate-600">
               srmdn
